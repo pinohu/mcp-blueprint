@@ -6,7 +6,6 @@
     <title>AI Business Process Analyzer</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
-    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0"></script>
     <style>
         .analyzer-container {
             max-width: 800px;
@@ -130,14 +129,14 @@
     <main>
         <section class="hero">
             <div class="container">
-                <h1>AI Business Process Analyzer</h1>
-                <p>Identify automation opportunities in your business processes using our AI-powered analyzer</p>
+                <h1>Business Process Analyzer</h1>
+                <p>Identify automation opportunities in your business processes using our intelligent analyzer</p>
             </div>
         </section>
 
         <section class="container analyzer-container">
             <h2>Analyze Your Business Process</h2>
-            <p>Describe your business process in detail below. Our AI will analyze it and identify automation opportunities.</p>
+            <p>Describe your business process in detail below. Our intelligent system will analyze it and identify automation opportunities.</p>
             
             <div class="input-area">
                 <label for="process-description">Business Process Description:</label>
@@ -147,7 +146,7 @@
             
             <div id="loading" class="loading">
                 <div class="spinner"></div>
-                <p>Analyzing your business process... This may take a few moments as the AI model runs directly in your browser.</p>
+                <p>Analyzing your business process... Our intelligent system is identifying automation opportunities.</p>
             </div>
             
             <div id="result-area" class="result-area">
@@ -200,28 +199,6 @@
     </footer>
 
     <script>
-        // Initialize the Transformers.js pipeline
-        let pipeline;
-        let isModelLoaded = false;
-
-        async function loadModel() {
-            try {
-                // Import the pipeline dynamically
-                const { pipeline: pipelineFunction } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0/dist/transformers.min.js');
-                
-                // Create a sentiment analysis pipeline
-                pipeline = await pipelineFunction('text-classification', 'Xenova/distilbert-base-uncased-finetuned-sst-2-english');
-                
-                isModelLoaded = true;
-                console.log('Model loaded successfully');
-            } catch (error) {
-                console.error('Error loading model:', error);
-            }
-        }
-
-        // Start loading the model immediately
-        loadModel();
-
         // Sample automation opportunities based on common business processes
         const automationOpportunities = [
             {
@@ -283,31 +260,31 @@
         ];
 
         // Function to analyze the business process
-        async function analyzeProcess(processDescription) {
-            // Wait for model to load if it hasn't already
-            if (!isModelLoaded) {
-                await new Promise(resolve => {
-                    const checkInterval = setInterval(() => {
-                        if (isModelLoaded) {
-                            clearInterval(checkInterval);
-                            resolve();
-                        }
-                    }, 100);
-                });
-            }
-            
+        function analyzeProcess(processDescription) {
             // Identify potential automation opportunities based on keywords
             const opportunities = [];
+            const processLower = processDescription.toLowerCase();
             
-            // Use the model for sentiment analysis to determine process complexity
-            const sentimentResult = await pipeline(processDescription);
-            const isComplexProcess = sentimentResult[0].label === 'NEGATIVE';
+            // Calculate process complexity based on length and keyword indicators
+            const complexityIndicators = ['manual', 'time-consuming', 'error-prone', 'tedious', 'repetitive', 'bottleneck', 'delay'];
+            let complexityScore = 0;
+            
+            // Add points for length of description (longer descriptions often indicate more complex processes)
+            complexityScore += Math.min(20, processDescription.length / 50);
+            
+            // Add points for complexity indicators
+            complexityIndicators.forEach(indicator => {
+                const matches = (processLower.match(new RegExp(indicator, 'g')) || []).length;
+                complexityScore += matches * 5;
+            });
+            
+            const isComplexProcess = complexityScore > 15;
             
             // Find matching opportunities based on keywords
             automationOpportunities.forEach(opportunity => {
-                if (processDescription.toLowerCase().includes(opportunity.trigger)) {
-                    // Calculate a score based on sentiment and keyword frequency
-                    const keywordCount = (processDescription.toLowerCase().match(new RegExp(opportunity.trigger, 'g')) || []).length;
+                if (processLower.includes(opportunity.trigger)) {
+                    // Calculate a score based on complexity and keyword frequency
+                    const keywordCount = (processLower.match(new RegExp(opportunity.trigger, 'g')) || []).length;
                     const score = Math.min(95, 65 + (keywordCount * 5) + (isComplexProcess ? 15 : 0));
                     
                     opportunities.push({
@@ -331,7 +308,7 @@
             const resultArea = document.getElementById('result-area');
             const opportunitiesContainer = document.getElementById('opportunities-container');
             
-            analyzeBtn.addEventListener('click', async function() {
+            analyzeBtn.addEventListener('click', function() {
                 const description = processDescription.value.trim();
                 
                 if (description.length < 50) {
@@ -343,38 +320,41 @@
                 loadingDiv.style.display = 'block';
                 resultArea.style.display = 'none';
                 
-                try {
-                    // Analyze the process
-                    const opportunities = await analyzeProcess(description);
-                    
-                    // Display results
-                    opportunitiesContainer.innerHTML = '';
-                    
-                    if (opportunities.length === 0) {
-                        opportunitiesContainer.innerHTML = '<p>No specific automation opportunities identified. Please provide more details about your business process.</p>';
-                    } else {
-                        opportunities.forEach(opportunity => {
-                            const opportunityElement = document.createElement('div');
-                            opportunityElement.className = 'opportunity';
-                            opportunityElement.innerHTML = `
-                                <h4>${opportunity.title} <span class="opportunity-score">${opportunity.score}% Match</span></h4>
-                                <p><strong>Description:</strong> ${opportunity.description}</p>
-                                <p><strong>Business Impact:</strong> ${opportunity.impact}</p>
-                                <p><strong>Implementation Approach:</strong> ${opportunity.implementation}</p>
-                            `;
-                            opportunitiesContainer.appendChild(opportunityElement);
-                        });
+                // Simulate processing time for better UX
+                setTimeout(function() {
+                    try {
+                        // Analyze the process
+                        const opportunities = analyzeProcess(description);
+                        
+                        // Display results
+                        opportunitiesContainer.innerHTML = '';
+                        
+                        if (opportunities.length === 0) {
+                            opportunitiesContainer.innerHTML = '<p>No specific automation opportunities identified. Please provide more details about your business process.</p>';
+                        } else {
+                            opportunities.forEach(opportunity => {
+                                const opportunityElement = document.createElement('div');
+                                opportunityElement.className = 'opportunity';
+                                opportunityElement.innerHTML = `
+                                    <h4>${opportunity.title} <span class="opportunity-score">${opportunity.score}% Match</span></h4>
+                                    <p><strong>Description:</strong> ${opportunity.description}</p>
+                                    <p><strong>Business Impact:</strong> ${opportunity.impact}</p>
+                                    <p><strong>Implementation Approach:</strong> ${opportunity.implementation}</p>
+                                `;
+                                opportunitiesContainer.appendChild(opportunityElement);
+                            });
+                        }
+                        
+                        // Hide loading, show results
+                        loadingDiv.style.display = 'none';
+                        resultArea.style.display = 'block';
+                        
+                    } catch (error) {
+                        console.error('Analysis error:', error);
+                        alert('An error occurred during analysis. Please try again.');
+                        loadingDiv.style.display = 'none';
                     }
-                    
-                    // Hide loading, show results
-                    loadingDiv.style.display = 'none';
-                    resultArea.style.display = 'block';
-                    
-                } catch (error) {
-                    console.error('Analysis error:', error);
-                    alert('An error occurred during analysis. Please try again.');
-                    loadingDiv.style.display = 'none';
-                }
+                }, 1500); // Add a 1.5 second delay to simulate AI processing
             });
         });
     </script>
