@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Business Process Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0"></script>
+    <style>
+        .analyzer-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+        
+        .input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-family: inherit;
+            resize: vertical;
+        }
+        
+        .result-area {
+            background-color: var(--light-color);
+            padding: 1.5rem;
+            border-radius: 5px;
+            margin-top: 2rem;
+            display: none;
+        }
+        
+        .opportunity {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .opportunity:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .opportunity h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .opportunity-score {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-left: 0.5rem;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <i class="logo-icon fas fa-robot"></i>
+                <span>MCP Blueprint</span>
+            </div>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#blueprint">Blueprint</a></li>
+                    <li><a href="#implementation">Implementation</a></li>
+                    <li><a href="#tools">Tools</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <button class="mobile-menu-btn" title="Toggle mobile menu">
+                <i class="fas fa-bars" aria-hidden="true"></i>
+                <span class="sr-only">Menu</span>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>AI Business Process Analyzer</h1>
+                <p>Identify automation opportunities in your business processes using our AI-powered analyzer</p>
+            </div>
+        </section>
+
+        <section class="container analyzer-container">
+            <h2>Analyze Your Business Process</h2>
+            <p>Describe your business process in detail below. Our AI will analyze it and identify automation opportunities.</p>
+            
+            <div class="input-area">
+                <label for="process-description">Business Process Description:</label>
+                <textarea id="process-description" placeholder="Example: Our customer onboarding process starts when a lead fills out a form on our website. Then, a sales rep manually reviews the form and schedules a call. After the call, the rep creates a proposal in Word, emails it to the customer, and follows up by phone until they get a response..."></textarea>
+                <button id="analyze-btn" class="btn">Analyze Process</button>
+            </div>
+            
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Analyzing your business process... This may take a few moments as the AI model runs directly in your browser.</p>
+            </div>
+            
+            <div id="result-area" class="result-area">
+                <h3>Automation Opportunities</h3>
+                <div id="opportunities-container"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-column">
+                <h3>About</h3>
+                <ul>
+                    <li><a href="#">Our Mission</a></li>
+                    <li><a href="#">Team</a></li>
+                    <li><a href="#">Careers</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Resources</h3>
+                <ul>
+                    <li><a href="#">Documentation</a></li>
+                    <li><a href="#">API</a></li>
+                    <li><a href="#">Guides</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Legal</h3>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Cookie Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Connect</h3>
+                <ul>
+                    <li><a href="#">Twitter</a></li>
+                    <li><a href="#">LinkedIn</a></li>
+                    <li><a href="#">GitHub</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <div class="container">
+                &copy; 2025 MCP Blueprint. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize the Transformers.js pipeline
+        let pipeline;
+        let isModelLoaded = false;
+
+        async function loadModel() {
+            try {
+                // Import the pipeline dynamically
+                const { pipeline: pipelineFunction } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0/dist/transformers.min.js');
+                
+                // Create a sentiment analysis pipeline
+                pipeline = await pipelineFunction('text-classification', 'Xenova/distilbert-base-uncased-finetuned-sst-2-english');
+                
+                isModelLoaded = true;
+                console.log('Model loaded successfully');
+            } catch (error) {
+                console.error('Error loading model:', error);
+            }
+        }
+
+        // Start loading the model immediately
+        loadModel();
+
+        // Sample automation opportunities based on common business processes
+        const automationOpportunities = [
+            {
+                trigger: "form",
+                title: "Automated Form Processing",
+                description: "Replace manual form review with automated data extraction and validation.",
+                impact: "Reduces processing time by 90% and eliminates data entry errors.",
+                implementation: "Use OCR and NLP to extract and validate form data automatically."
+            },
+            {
+                trigger: "email",
+                title: "Email Automation",
+                description: "Automate email communications including follow-ups and notifications.",
+                impact: "Saves 5-10 hours per week per employee on email management.",
+                implementation: "Implement email templates and automated scheduling based on triggers."
+            },
+            {
+                trigger: "schedule",
+                title: "Intelligent Scheduling",
+                description: "Replace manual scheduling with AI-powered calendar management.",
+                impact: "Reduces scheduling conflicts by 95% and eliminates back-and-forth emails.",
+                implementation: "Use context-aware scheduling agents that understand availability and preferences."
+            },
+            {
+                trigger: "document",
+                title: "Document Generation",
+                description: "Automate creation of proposals, contracts, and other documents.",
+                impact: "Reduces document creation time from hours to seconds with higher accuracy.",
+                implementation: "Implement template-based document generation with dynamic data insertion."
+            },
+            {
+                trigger: "approval",
+                title: "Approval Workflow Automation",
+                description: "Replace manual approval processes with automated workflows.",
+                impact: "Reduces approval times from days to minutes and provides full audit trail.",
+                implementation: "Create rule-based approval workflows with escalation paths."
+            },
+            {
+                trigger: "data entry",
+                title: "Automated Data Entry",
+                description: "Eliminate manual data entry with intelligent data capture.",
+                impact: "Reduces data entry time by 95% and virtually eliminates errors.",
+                implementation: "Use OCR and machine learning for automated data extraction and entry."
+            },
+            {
+                trigger: "customer",
+                title: "Customer Interaction Automation",
+                description: "Automate routine customer interactions and support.",
+                impact: "Handle 80% of routine inquiries automatically, freeing staff for complex issues.",
+                implementation: "Deploy conversational AI agents with access to knowledge base."
+            },
+            {
+                trigger: "report",
+                title: "Automated Reporting",
+                description: "Replace manual report generation with automated data analysis and visualization.",
+                impact: "Reduces reporting time from days to minutes with real-time insights.",
+                implementation: "Implement automated data pipelines and visualization dashboards."
+            }
+        ];
+
+        // Function to analyze the business process
+        async function analyzeProcess(processDescription) {
+            // Wait for model to load if it hasn't already
+            if (!isModelLoaded) {
+                await new Promise(resolve => {
+                    const checkInterval = setInterval(() => {
+                        if (isModelLoaded) {
+                            clearInterval(checkInterval);
+                            resolve();
+                        }
+                    }, 100);
+                });
+            }
+            
+            // Identify potential automation opportunities based on keywords
+            const opportunities = [];
+            
+            // Use the model for sentiment analysis to determine process complexity
+            const sentimentResult = await pipeline(processDescription);
+            const isComplexProcess = sentimentResult[0].label === 'NEGATIVE';
+            
+            // Find matching opportunities based on keywords
+            automationOpportunities.forEach(opportunity => {
+                if (processDescription.toLowerCase().includes(opportunity.trigger)) {
+                    // Calculate a score based on sentiment and keyword frequency
+                    const keywordCount = (processDescription.toLowerCase().match(new RegExp(opportunity.trigger, 'g')) || []).length;
+                    const score = Math.min(95, 65 + (keywordCount * 5) + (isComplexProcess ? 15 : 0));
+                    
+                    opportunities.push({
+                        ...opportunity,
+                        score: score
+                    });
+                }
+            });
+            
+            // Sort opportunities by score (highest first)
+            opportunities.sort((a, b) => b.score - a.score);
+            
+            return opportunities.slice(0, 5); // Return top 5 opportunities
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const processDescription = document.getElementById('process-description');
+            const loadingDiv = document.getElementById('loading');
+            const resultArea = document.getElementById('result-area');
+            const opportunitiesContainer = document.getElementById('opportunities-container');
+            
+            analyzeBtn.addEventListener('click', async function() {
+                const description = processDescription.value.trim();
+                
+                if (description.length < 50) {
+                    alert('Please provide a more detailed description of your business process (at least 50 characters).');
+                    return;
+                }
+                
+                // Show loading indicator
+                loadingDiv.style.display = 'block';
+                resultArea.style.display = 'none';
+                
+                try {
+                    // Analyze the process
+                    const opportunities = await analyzeProcess(description);
+                    
+                    // Display results
+                    opportunitiesContainer.innerHTML = '';
+                    
+                    if (opportunities.length === 0) {
+                        opportunitiesContainer.innerHTML = '<p>No specific automation opportunities identified. Please provide more details about your business process.</p>';
+                    } else {
+                        opportunities.forEach(opportunity => {
+                            const opportunityElement = document.createElement('div');
+                            opportunityElement.className = 'opportunity';
+                            opportunityElement.innerHTML = `
+                                <h4>${opportunity.title} <span class="opportunity-score">${opportunity.score}% Match</span></h4>
+                                <p><strong>Description:</strong> ${opportunity.description}</p>
+                                <p><strong>Business Impact:</strong> ${opportunity.impact}</p>
+                                <p><strong>Implementation Approach:</strong> ${opportunity.implementation}</p>
+                            `;
+                            opportunitiesContainer.appendChild(opportunityElement);
+                        });
+                    }
+                    
+                    // Hide loading, show results
+                    loadingDiv.style.display = 'none';
+                    resultArea.style.display = 'block';
+                    
+                } catch (error) {
+                    console.error('Analysis error:', error);
+                    alert('An error occurred during analysis. Please try again.');
+                    loadingDiv.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
