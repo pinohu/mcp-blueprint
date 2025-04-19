@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Business Process Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+    <style>
+        .analyzer-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+        
+        .input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-family: inherit;
+            resize: vertical;
+        }
+        
+        .result-area {
+            background-color: var(--light-color);
+            padding: 1.5rem;
+            border-radius: 5px;
+            margin-top: 2rem;
+            display: none;
+        }
+        
+        .opportunity {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .opportunity:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .opportunity h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .opportunity-score {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-left: 0.5rem;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
+        .api-key-container {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #e9ecef;
+        }
+
+        .api-key-container p {
+            margin-bottom: 0.5rem;
+        }
+
+        .api-key-container input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+        }
+
+        .model-selection {
+            margin-bottom: 1rem;
+        }
+
+        .model-selection select {
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <i class="logo-icon fas fa-robot"></i>
+                <span>MCP Blueprint</span>
+            </div>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#blueprint">Blueprint</a></li>
+                    <li><a href="#implementation">Implementation</a></li>
+                    <li><a href="#tools">Tools</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <button class="mobile-menu-btn" title="Toggle mobile menu">
+                <i class="fas fa-bars" aria-hidden="true"></i>
+                <span class="sr-only">Menu</span>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>AI Business Process Analyzer</h1>
+                <p>Identify automation opportunities in your business processes using AI-powered analysis</p>
+            </div>
+        </section>
+
+        <section class="container analyzer-container">
+            <h2>Analyze Your Business Process</h2>
+            <p>Describe your business process in detail below. Our AI will analyze it and identify automation opportunities.</p>
+            
+            <div class="api-key-container">
+                <p>Enter your Hugging Face API Token (free to create at <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer">huggingface.co</a>):</p>
+                <input type="password" id="api-key" placeholder="hf_..." />
+                <p class="text-muted">Your API key is used only for this analysis and is not stored anywhere.</p>
+            </div>
+
+            <div class="model-selection">
+                <label for="model-select">Select AI Model:</label>
+                <select id="model-select">
+                    <option value="google/flan-t5-large">Flan-T5-Large (Recommended)</option>
+                    <option value="facebook/opt-1.3b">OPT-1.3B</option>
+                    <option value="EleutherAI/gpt-neo-1.3B">GPT-Neo-1.3B</option>
+                    <option value="bigscience/bloom-1b7">BLOOM-1.7B</option>
+                </select>
+            </div>
+            
+            <div class="input-area">
+                <label for="process-description">Business Process Description:</label>
+                <textarea id="process-description" placeholder="Example: Our customer onboarding process starts when a lead fills out a form on our website. Then, a sales rep manually reviews the form and schedules a call. After the call, the rep creates a proposal in Word, emails it to the customer, and follows up by phone until they get a response..."></textarea>
+                <button id="analyze-btn" class="btn">Analyze Process</button>
+            </div>
+            
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Analyzing your business process... Our AI is identifying automation opportunities.</p>
+            </div>
+            
+            <div id="result-area" class="result-area">
+                <h3>AI-Identified Automation Opportunities</h3>
+                <div id="opportunities-container"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-column">
+                <h3>About</h3>
+                <ul>
+                    <li><a href="#">Our Mission</a></li>
+                    <li><a href="#">Team</a></li>
+                    <li><a href="#">Careers</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Resources</h3>
+                <ul>
+                    <li><a href="#">Documentation</a></li>
+                    <li><a href="#">API</a></li>
+                    <li><a href="#">Guides</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Legal</h3>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Cookie Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Connect</h3>
+                <ul>
+                    <li><a href="#">Twitter</a></li>
+                    <li><a href="#">LinkedIn</a></li>
+                    <li><a href="#">GitHub</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <div class="container">
+                &copy; 2025 MCP Blueprint. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Function to analyze the business process using Hugging Face API
+        async function analyzeProcess(apiKey, model, processDescription) {
+            // Create the prompt for the LLM
+            const prompt = `
+Analyze the following business process and identify 3-5 specific automation opportunities. 
+For each opportunity, provide:
+1. A title for the automation opportunity
+2. A detailed description of what can be automated
+3. The estimated business impact (time saved, error reduction, etc.)
+4. A specific implementation approach
+
+Business Process:
+${processDescription}
+
+Format your response as a JSON array with objects containing title, description, impact, and implementation fields.
+`;
+
+            try {
+                // Call the Hugging Face Inference API
+                const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ inputs: prompt })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API request failed with status ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                // Process the result
+                let opportunities = [];
+                
+                try {
+                    // Try to parse the response as JSON
+                    const text = Array.isArray(result) ? result[0].generated_text : result.generated_text;
+                    
+                    // Extract JSON array from the text (it might be embedded in other text)
+                    const jsonMatch = text.match(/\[[\s\S]*\]/);
+                    if (jsonMatch) {
+                        opportunities = JSON.parse(jsonMatch[0]);
+                    } else {
+                        // If no JSON array found, try to extract structured information
+                        const sections = text.split(/\n\s*\n/);
+                        
+                        sections.forEach((section, index) => {
+                            if (section.trim().length > 0) {
+                                const lines = section.split('\n');
+                                const title = lines[0].replace(/^\d+\.\s*/, '').trim();
+                                
+                                let description = '';
+                                let impact = '';
+                                let implementation = '';
+                                
+                                lines.slice(1).forEach(line => {
+                                    if (line.toLowerCase().includes('description')) {
+                                        description = line.split(':')[1]?.trim() || '';
+                                    } else if (line.toLowerCase().includes('impact')) {
+                                        impact = line.split(':')[1]?.trim() || '';
+                                    } else if (line.toLowerCase().includes('implementation')) {
+                                        implementation = line.split(':')[1]?.trim() || '';
+                                    }
+                                });
+                                
+                                opportunities.push({
+                                    title,
+                                    description: description || 'Automate this process to reduce manual effort and errors.',
+                                    impact: impact || 'Reduces processing time and improves accuracy.',
+                                    implementation: implementation || 'Implement using workflow automation tools.'
+                                });
+                            }
+                        });
+                    }
+                } catch (parseError) {
+                    console.error('Error parsing LLM response:', parseError);
+                    
+                    // Fallback: Create a simple opportunity based on keywords in the process
+                    const processLower = processDescription.toLowerCase();
+                    
+                    if (processLower.includes('form') || processLower.includes('data entry')) {
+                        opportunities.push({
+                            title: 'Form Automation',
+                            description: 'Automate the form processing and data entry to eliminate manual review.',
+                            impact: 'Reduces processing time by 90% and eliminates data entry errors.',
+                            implementation: 'Implement digital forms with validation and direct database integration.'
+                        });
+                    }
+                    
+                    if (processLower.includes('email') || processLower.includes('follow up')) {
+                        opportunities.push({
+                            title: 'Email Automation',
+                            description: 'Automate follow-up emails and notifications based on triggers.',
+                            impact: 'Saves 5-10 hours per week per employee on email management.',
+                            implementation: 'Use email automation platform with templates and scheduling.'
+                        });
+                    }
+                    
+                    if (processLower.includes('schedule') || processLower.includes('call')) {
+                        opportunities.push({
+                            title: 'Scheduling Automation',
+                            description: 'Implement self-service scheduling for customers.',
+                            impact: 'Eliminates back-and-forth emails and reduces scheduling time by 80%.',
+                            implementation: 'Use a scheduling tool with calendar integration and automated reminders.'
+                        });
+                    }
+                }
+                
+                // Add confidence scores
+                opportunities = opportunities.map((opp, index) => ({
+                    ...opp,
+                    score: Math.min(95, 90 - (index * 5))
+                }));
+                
+                return opportunities;
+            } catch (error) {
+                console.error('Error calling Hugging Face API:', error);
+                throw error;
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const processDescription = document.getElementById('process-description');
+            const apiKeyInput = document.getElementById('api-key');
+            const modelSelect = document.getElementById('model-select');
+            const loadingDiv = document.getElementById('loading');
+            const resultArea = document.getElementById('result-area');
+            const opportunitiesContainer = document.getElementById('opportunities-container');
+            
+            analyzeBtn.addEventListener('click', function() {
+                const description = processDescription.value.trim();
+                const apiKey = apiKeyInput.value.trim();
+                const model = modelSelect.value;
+                
+                if (description.length < 50) {
+                    alert('Please provide a more detailed description of your business process (at least 50 characters).');
+                    return;
+                }
+                
+                if (!apiKey || !apiKey.startsWith('hf_')) {
+                    alert('Please enter a valid Hugging Face API token. You can create one for free at huggingface.co/settings/tokens');
+                    return;
+                }
+                
+                // Show loading indicator
+                loadingDiv.style.display = 'block';
+                resultArea.style.display = 'none';
+                
+                // Call the API with a timeout
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('API request timed out')), 30000)
+                );
+                
+                Promise.race([
+                    analyzeProcess(apiKey, model, description),
+                    timeoutPromise
+                ])
+                .then(opportunities => {
+                    // Display results
+                    opportunitiesContainer.innerHTML = '';
+                    
+                    if (opportunities.length === 0) {
+                        opportunitiesContainer.innerHTML = '<p>No specific automation opportunities identified. Please provide more details about your business process.</p>';
+                    } else {
+                        opportunities.forEach(opportunity => {
+                            const opportunityElement = document.createElement('div');
+                            opportunityElement.className = 'opportunity';
+                            opportunityElement.innerHTML = `
+                                <h4>${opportunity.title} <span class="opportunity-score">${opportunity.score}% Match</span></h4>
+                                <p><strong>Description:</strong> ${opportunity.description}</p>
+                                <p><strong>Business Impact:</strong> ${opportunity.impact}</p>
+                                <p><strong>Implementation Approach:</strong> ${opportunity.implementation}</p>
+                            `;
+                            opportunitiesContainer.appendChild(opportunityElement);
+                        });
+                    }
+                    
+                    // Hide loading, show results
+                    loadingDiv.style.display = 'none';
+                    resultArea.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Analysis error:', error);
+                    alert('An error occurred during analysis: ' + error.message + '. Please try again or try a different model.');
+                    loadingDiv.style.display = 'none';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
