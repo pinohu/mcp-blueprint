@@ -249,17 +249,31 @@
         async function analyzeProcess(apiKey, model, processDescription) {
             // Create the prompt for the LLM
             const prompt = `
-Analyze the following business process and identify 3-5 specific automation opportunities. 
-For each opportunity, provide:
-1. A title for the automation opportunity
-2. A detailed description of what can be automated
-3. The estimated business impact (time saved, error reduction, etc.)
-4. A specific implementation approach
+You are an expert business process automation consultant. Analyze the following business process in detail and identify 5-7 specific automation opportunities.
 
 Business Process:
 ${processDescription}
 
-Format your response as a JSON array with objects containing title, description, impact, and implementation fields.
+For each automation opportunity:
+1. Provide a specific title that clearly identifies the process component being automated
+2. Write a comprehensive description (at least 100 words) that:
+   - Identifies the exact pain points in the current process
+   - References specific elements mentioned in the client's business process
+   - Explains precisely what will be automated and how it will work
+3. Quantify the business impact with specific metrics:
+   - Time savings (hours/week)
+   - Cost reduction (percentage or dollar estimates)
+   - Error reduction rates
+   - Customer satisfaction improvements
+   - Employee productivity gains
+4. Provide a detailed implementation approach that includes:
+   - Specific technologies or tools to use
+   - Integration requirements with existing systems
+   - Implementation timeline and phases
+   - Required resources and expertise
+   - Potential challenges and mitigation strategies
+
+Format your response as a JSON array with objects containing title, description, impact, and implementation fields. Make each field extremely detailed and specific to the client's business process.
 `;
 
             try {
@@ -325,33 +339,74 @@ Format your response as a JSON array with objects containing title, description,
                 } catch (parseError) {
                     console.error('Error parsing LLM response:', parseError);
                     
-                    // Fallback: Create a simple opportunity based on keywords in the process
+                    // Enhanced fallback: Create detailed opportunities based on keywords in the process
                     const processLower = processDescription.toLowerCase();
+                    const keywords = {
+                        'form': {
+                            title: 'Intelligent Form Processing Automation',
+                            description: `Based on your description that mentions form processing, we've identified a significant opportunity to automate your form handling workflow. Currently, your team is manually processing forms, which is time-consuming and error-prone. By implementing intelligent form processing, you can automatically extract data from forms (whether digital or scanned paper forms), validate the information against business rules, and route it to the appropriate systems without human intervention. This will eliminate the manual review step mentioned in your process and ensure data accuracy.`,
+                            impact: 'Reduces form processing time by 95% (from hours to minutes), eliminates data entry errors (typically 4-7% in manual processes), saves approximately 15-20 hours per week per employee involved in form processing, and improves customer experience by providing instant confirmation of form submission and faster response times.',
+                            implementation: 'Implementation involves: 1) Deploying an OCR and machine learning-based form processing solution like UiPath Document Understanding or ABBYY FlexiCapture, 2) Creating custom data extraction models trained on your specific form types, 3) Building validation rules based on your business logic, 4) Integrating with your existing CRM/ERP systems via APIs, 5) Setting up exception handling workflows for forms that require human review. Timeline: 6-8 weeks for initial implementation with 2-3 weeks of training and optimization.'
+                        },
+                        'email': {
+                            title: 'Comprehensive Email Communication Automation',
+                            description: `Your process description mentions multiple email communications and follow-ups that are currently handled manually. This represents a prime opportunity for automation. We can implement an intelligent email automation system that not only sends emails based on triggers but also analyzes responses, categorizes them, and takes appropriate actions. The system will automatically generate personalized emails at each stage of your process, track open and response rates, and intelligently determine when and how to follow up based on customer behavior patterns.`,
+                            impact: 'Saves 12-15 hours per week per employee on email management (based on industry averages), increases response rates by 30-40% through optimal timing and personalization, ensures 100% follow-up compliance (eliminating missed communications), reduces customer response time from days to hours, and provides comprehensive analytics on communication effectiveness.',
+                            implementation: 'Implementation approach: 1) Deploy a communication automation platform like Salesforce Marketing Cloud, HubSpot, or ActiveCampaign, 2) Create email templates and personalization variables mapped to your customer data, 3) Design trigger-based workflows with conditional logic for different customer scenarios, 4) Implement natural language processing for email response analysis, 5) Integrate with your CRM system for bi-directional data flow, 6) Set up A/B testing framework to continuously optimize communications. Estimated timeline: 4-6 weeks with ongoing optimization.'
+                        },
+                        'schedule': {
+                            title: 'AI-Powered Scheduling and Resource Optimization',
+                            description: `Your business process involves scheduling activities that are currently managed manually. This creates inefficiencies, potential conflicts, and a poor customer experience. We propose implementing an AI-powered scheduling system that not only allows for self-service booking but also optimizes resource allocation based on availability, skills, priority, and historical patterns. The system will automatically suggest optimal time slots, handle rescheduling, send reminders, and adjust resources in real-time as conditions change.`,
+                            impact: 'Eliminates 100% of manual scheduling tasks (typically 5-8 hours per week per scheduler), reduces scheduling conflicts by 95%, decreases no-shows by 30-50% through automated reminders, improves resource utilization by 15-25%, enhances customer satisfaction with convenient self-service options, and provides valuable analytics on scheduling patterns and resource utilization.',
+                            implementation: 'Implementation plan: 1) Deploy an advanced scheduling platform like Calendly Enterprise, Microsoft Bookings, or a custom solution built on Microsoft Power Platform, 2) Integrate with your team calendars and resource management systems, 3) Configure business rules for optimal scheduling based on your specific constraints, 4) Implement the customer-facing booking interface with your branding, 5) Set up automated notification workflows for all parties, 6) Create dashboards for monitoring scheduling efficiency. Timeline: 3-5 weeks for initial implementation with ongoing optimization.'
+                        },
+                        'document': {
+                            title: 'Intelligent Document Generation and Management System',
+                            description: `Your process involves creating and managing documents like proposals, contracts, or reports. This manual document creation is time-consuming, inconsistent, and prone to errors. We recommend implementing an intelligent document automation system that can generate perfectly formatted, personalized documents using data from your systems. The solution will maintain version control, track changes, manage approvals, and ensure compliance with your standards and regulations.`,
+                            impact: 'Reduces document creation time by 80-90% (from hours to minutes), ensures 100% compliance with latest templates and legal requirements, eliminates formatting and content errors, enables real-time collaboration, provides comprehensive audit trails for all document activities, and improves customer experience through faster turnaround times and higher quality documents.',
+                            implementation: 'Implementation strategy: 1) Deploy a document automation platform like Docusign Gen, Conga Composer, or PandaDoc, 2) Create template library with dynamic fields mapped to your data sources, 3) Build approval workflows based on your business rules, 4) Integrate with your CRM/ERP systems for data population, 5) Implement digital signature capabilities, 6) Set up document analytics to track engagement. Estimated timeline: 6-8 weeks for full implementation with 2-3 weeks of user training.'
+                        },
+                        'approval': {
+                            title: 'Intelligent Approval Workflow Automation',
+                            description: `Your business process includes approval steps that are currently handled manually, creating bottlenecks and delays. We propose implementing an intelligent approval workflow system that automatically routes requests to the appropriate approvers based on predefined rules, sends reminders, escalates when needed, and provides complete visibility into the approval status. The system will use AI to pre-validate requests, suggest appropriate approvers, and even auto-approve routine items based on historical patterns.`,
+                            impact: 'Reduces approval cycle times by 70-80% (from days to hours or minutes), eliminates 100% of manual routing and follow-up tasks, provides complete audit trails for compliance purposes, enables mobile approvals for on-the-go decision makers, identifies and addresses bottlenecks through analytics, and improves employee and customer satisfaction through faster turnaround times.',
+                            implementation: 'Implementation approach: 1) Deploy a workflow automation platform like Microsoft Power Automate, ServiceNow, or Kissflow, 2) Map and digitize your current approval processes, 3) Configure business rules for routing, escalation, and delegation, 4) Implement integration with email, messaging, and mobile platforms for notifications, 5) Create dashboards for monitoring approval metrics and identifying bottlenecks, 6) Set up continuous improvement framework based on approval analytics. Timeline: 4-6 weeks with phased rollout across departments.'
+                        },
+                        'manual': {
+                            title: 'End-to-End Process Automation with RPA and AI',
+                            description: `Your process description mentions several manual steps that are prime candidates for automation. We recommend implementing a comprehensive Robotic Process Automation (RPA) solution enhanced with AI capabilities to automate these repetitive, rule-based tasks. The solution will mimic human actions in your existing systems, work 24/7 without errors, and continuously improve through machine learning. This will free your team from mundane tasks and allow them to focus on higher-value activities that require human judgment and creativity.`,
+                            impact: 'Reduces processing time by 80-90% for automated tasks, eliminates human errors in routine processes (typically 5-10% error rate in manual processes), enables 24/7 operations without additional staffing, saves 15-30 hours per week per employee involved in manual processes, improves employee satisfaction by eliminating tedious tasks, and enhances scalability to handle volume fluctuations without additional resources.',
+                            implementation: 'Implementation strategy: 1) Deploy an enterprise RPA platform like UiPath, Automation Anywhere, or Microsoft Power Automate, 2) Conduct detailed process mapping and optimization before automation, 3) Develop, test and deploy automation bots for each identified process, 4) Implement exception handling and human-in-the-loop workflows for complex cases, 5) Create a monitoring dashboard for bot performance and business outcomes, 6) Establish a Center of Excellence for ongoing automation governance. Timeline: 8-12 weeks for initial implementation with phased rollout and continuous expansion.'
+                        },
+                        'customer': {
+                            title: 'AI-Powered Customer Interaction Automation',
+                            description: `Your process involves multiple customer interactions that are currently handled manually. We recommend implementing an AI-powered customer interaction automation system that can handle routine inquiries, provide personalized responses, and seamlessly escalate complex issues to human agents when necessary. The system will use natural language processing to understand customer intent, machine learning to improve over time, and integration with your systems to provide context-aware responses.`,
+                            impact: 'Automates handling of 70-80% of routine customer inquiries (based on industry benchmarks), provides instant 24/7 response to customer questions, reduces average handling time by 40-60%, improves first contact resolution rates by 15-25%, ensures consistent quality in all customer interactions, and generates valuable insights from customer conversation analytics.',
+                            implementation: 'Implementation approach: 1) Deploy an AI-powered conversational platform like Dialogflow, Microsoft Bot Framework, or Intercom, 2) Design conversation flows based on your common customer scenarios, 3) Integrate with your knowledge base and backend systems for contextual information, 4) Implement natural language understanding models trained on your specific domain, 5) Create seamless handoff protocols to human agents for complex issues, 6) Set up analytics to continuously improve conversation effectiveness. Timeline: 8-10 weeks for initial implementation with ongoing training and optimization.'
+                        }
+                    };
                     
-                    if (processLower.includes('form') || processLower.includes('data entry')) {
+                    // Find matching keywords in the process description
+                    const matchedKeywords = Object.keys(keywords).filter(keyword =>
+                        processLower.includes(keyword)
+                    );
+                    
+                    // Add opportunities based on matched keywords (up to 5)
+                    matchedKeywords.slice(0, 5).forEach((keyword, index) => {
                         opportunities.push({
-                            title: 'Form Automation',
-                            description: 'Automate the form processing and data entry to eliminate manual review.',
-                            impact: 'Reduces processing time by 90% and eliminates data entry errors.',
-                            implementation: 'Implement digital forms with validation and direct database integration.'
+                            ...keywords[keyword],
+                            score: Math.min(95, 90 - (index * 3))
                         });
-                    }
+                    });
                     
-                    if (processLower.includes('email') || processLower.includes('follow up')) {
+                    // If no keywords matched, add a generic process automation opportunity
+                    if (opportunities.length === 0) {
                         opportunities.push({
-                            title: 'Email Automation',
-                            description: 'Automate follow-up emails and notifications based on triggers.',
-                            impact: 'Saves 5-10 hours per week per employee on email management.',
-                            implementation: 'Use email automation platform with templates and scheduling.'
-                        });
-                    }
-                    
-                    if (processLower.includes('schedule') || processLower.includes('call')) {
-                        opportunities.push({
-                            title: 'Scheduling Automation',
-                            description: 'Implement self-service scheduling for customers.',
-                            impact: 'Eliminates back-and-forth emails and reduces scheduling time by 80%.',
-                            implementation: 'Use a scheduling tool with calendar integration and automated reminders.'
+                            title: 'Comprehensive Business Process Automation',
+                            description: 'Based on your process description, we recommend implementing an end-to-end business process automation solution that digitizes and automates your current manual workflows. This solution will integrate with your existing systems, provide real-time visibility into process status, and eliminate manual handoffs between steps. The automation will include intelligent document processing, workflow orchestration, and integration with your core business systems.',
+                            impact: 'Reduces overall process time by 60-70%, eliminates manual errors, provides complete process visibility, enables 24/7 operation, improves employee productivity by 30-40%, and enhances customer satisfaction through faster response times and consistent quality.',
+                            implementation: 'Implementation involves: 1) Detailed process mapping and optimization, 2) Selection of appropriate automation platform (e.g., Pega, Appian, or Microsoft Power Platform), 3) Development of automated workflows with business rules, 4) Integration with existing systems via APIs, 5) User training and change management, 6) Continuous monitoring and optimization. Timeline: 12-16 weeks for full implementation with phased rollout.',
+                            score: 85
                         });
                     }
                 }
