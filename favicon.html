@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Favicon Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <canvas id="favicon" width="16" height="16"></canvas>
+    <script>
+        // Get the canvas element
+        const canvas = document.getElementById('favicon');
+        const ctx = canvas.getContext('2d');
+        
+        // Draw a simple blue square with rounded corners
+        ctx.fillStyle = '#2563eb'; // Primary color from our CSS
+        ctx.beginPath();
+        // Use arc instead of roundRect for better browser compatibility
+        ctx.rect(0, 0, 16, 16);
+        ctx.fill();
+        
+        // Draw MCP text
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 10px Arial';
+        ctx.fillText('M', 2, 11);
+        
+        // Convert canvas to favicon
+        const link = document.createElement('link');
+        link.rel = 'icon';
+        link.href = canvas.toDataURL('image/x-icon');
+        document.head.appendChild(link);
+        
+        // Show download instructions
+        document.body.innerHTML += '<p>Right-click on the favicon above and select "Save image as..." to save as favicon.ico</p>';
+    </script>
+</body>
+</html>
